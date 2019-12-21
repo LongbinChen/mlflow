@@ -1,0 +1,17 @@
+
+task_convert:
+  operator: operators.data.csv_converter.CSVConverter
+  parameters:
+    input_data: file:///Users/longbin.chen/mlflow/localfile/iris.csv
+    output_data: iris.tsv
+    input_sep: comma
+    output_sep: tab
+    input_header: sepal-length,sepal-width,petal-length,petal-width,class
+    output_header: True
+
+task_sklearn_classifier:
+  operator: operators.sklearn.sklearn_classifiers.SKLearnClassifierOperator
+  parameters:
+    input_data: task_convert::output_data
+    output_data: classification_result
+    label_column: class
