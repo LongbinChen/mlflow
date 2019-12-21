@@ -4,9 +4,6 @@ from operators.base import Operator, InputDataType, OutputDataType, StringParam
 import logging
 
 from pandas import read_csv
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import accuracy_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -20,6 +17,7 @@ from sklearn.model_selection import StratifiedKFold
 # Load dataset
 
 logger = logging.getLogger("SKClassifier")
+
 
 class SKLearnClassifierOperator(Operator):
     def __init__(self,
@@ -38,7 +36,7 @@ class SKLearnClassifierOperator(Operator):
         X = df.loc[:, df.columns != self.label_column].values
         y = df[self.label_column].values
 
-        models = []
+        models = list()
         models.append(('LR', LogisticRegression(solver='liblinear', multi_class='ovr')))
         models.append(('LDA', LinearDiscriminantAnalysis()))
         models.append(('KNN', KNeighborsClassifier()))

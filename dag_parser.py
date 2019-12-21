@@ -1,7 +1,6 @@
 import data_utils
 from importlib import import_module
 import inspect
-import json
 import logging
 
 logger = logging.getLogger("DagParser")
@@ -14,9 +13,9 @@ class DAGParser:
         self.parse()
 
     def parse(self):
-        '''
+        """
         main entry of the dag parser
-        '''
+        """
         logger.info("==========================================================")
         logger.info(" DAG Parseing ...")
         logger.info("==========================================================")
@@ -25,9 +24,9 @@ class DAGParser:
 
         # import the operator module and find the input/output and parameters
         self._get_task_info()
+
         # create hashing for the task as well as the input/output data
         self._annotate_dag()
-
 
     def _get_task_info(self):
         for task in self.tasks:
@@ -36,12 +35,7 @@ class DAGParser:
             task['operator_info'] = inspect.getfullargspec(operator.__init__)
             task['parameters_inpsect'] = inspect.getfullargspec(operator.__init__)
 
-            # for  t, s in task['parameters_inpsect'].annotations.items():
-            #     if str(s) == "<class 'operators.base.OutputDataType'>":
-            #         print(t, s)
-
-
-            task['input_data_list'] = list(filter(lambda m: str(m[1]) == "<class 'operators.base.InputDataType'>", 
+            task['input_data_list'] = list(filter(lambda m: str(m[1]) == "<class 'operators.base.InputDataType'>",
                                         task['parameters_inpsect'].annotations.items()))
             task['output_data_list'] = list(filter(lambda m: str(m[1]) == "<class 'operators.base.OutputDataType'>", 
                                         task['parameters_inpsect'].annotations.items()))
@@ -75,12 +69,11 @@ class DAGParser:
                 data_context[task['name'] + "::" + k] = output_hash
                 task['output_data_hash'][k] = output_hash
 
-
-            
     def _sort_tasks(self):
-        ''' given a dag, return a list of task that can run sequentially 
+        """
+        given a dag, return a list of task that can run sequentially
         if task A's input is  task B's output, B depends on A
-        '''
+        """
         dag = self.dag
         dep = set()
         all_tasks = []
@@ -92,8 +85,6 @@ class DAGParser:
                 if '::' in data_location:
                     dep_task, _ = data_location.split("::", 1)
                     dep.add((dep_task,task))
-        
-        #top_sort(dep)
 
         self.tasks = []
         while len(all_tasks) > 0:

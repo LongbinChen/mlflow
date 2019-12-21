@@ -1,9 +1,9 @@
-import argparse
-import json
 from operators.base import Operator, InputDataType, OutputDataType, StringParam
 import pandas as pd
 import logging
+
 logger = logging.getLogger("OP/data/CSVConverter")
+
 
 class CSVConverter(Operator):
     def __init__(self,

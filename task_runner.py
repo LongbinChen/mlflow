@@ -1,15 +1,6 @@
-import argparse
-import datetime
 import json
 import os
-import shutil
 import subprocess
-import sys
-import time
-import types
-from time import gmtime, strftime
-import yaml
-import inspect
 import data_utils
 import mlconfig
 import logging
@@ -24,6 +15,7 @@ format of task parameters:
 [data_name]: [data_value]
 
 '''
+
 
 class TaskRunner:
     def __init__(self, task, dag):
@@ -63,7 +55,6 @@ class TaskRunner:
             logger.info("\t* Exisiting Working directory %s" % self.task_dir)
 
         logger.info("\t* Iterate throught all input Data")
-        
 
         self.task['real_parameters'] = copy.deepcopy(self.task['parameters'])
 
@@ -82,10 +73,10 @@ class TaskRunner:
             self.task['real_parameters'][data_name] = os.path.join(self.task_dir, data_name)
 
     def _create_soft_link_to_localfile(self, data_name, data_value):
-        '''
+        """
         create a soft link from working director + data_name to data_value, \
              which is a string in the format of file://
-        '''
+        """
         logger.info("\t\t- Create soft linke from %s to %s " % (data_name, data_value))
         data_location = data_value[7:]
         current_location = os.path.join(self.task_dir, data_name)
@@ -110,9 +101,9 @@ class TaskRunner:
             logger.info("%s -> %s " % (data_name, data_location))
 
     def _download_data_from_s3(self, s3_data_url):
-        ''' 
+        """
         download s3 data from s3_data_url, to data_dir/[md5(s3_url)]
-        '''
+        """
         local_data_hash = data_utils.get_md5(s3_data_url.encode('utf-8'))
         local_data_location = os.path.join(mlconfig.data_dir, local_data_hash)
         if os.path.exists(local_data_location):
@@ -133,12 +124,11 @@ class TaskRunner:
                     streamdata = result.communicate()[0]
                     text = result.returncode
             if (text != 0):
-                logger.warn("Status : FAIL")
-                logger.warn("\n".join(open(os.path.join(
+                logger.warning("Status : FAIL")
+                logger.warning("\n".join(open(os.path.join(
                     self.task_dir, "stderr_%d.txt" % self._cmd_count), "r").readlines()))
         except subprocess.CalledProcessError as exc:
-            logger.warn("Status : FAIL "  + str(exc.returncode) + str(exc.output))
-
+            logger.warning("Status : FAIL "  + str(exc.returncode) + str(exc.output))
 
     def _copy_output_to_data(self):
         logger.info("\t* Copy output to global data place and soft link the output")
