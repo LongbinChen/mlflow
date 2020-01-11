@@ -23,7 +23,10 @@ class CSVConverter(Operator):
     def execute(self):
         logger.info("Convert data from %s to %s" % (self.input_data, self.output_data))
         sep_dict = {'comman':',', "tab":'\t'}
-        input_header = self.input_header.split(",")
-        dataset = pd.read_csv(self.input_data, sep=sep_dict.get(self.input_sep, ","), names=input_header)
+        if self.input_header == "":
+            dataset = pd.read_csv(self.input_data, sep=sep_dict.get(self.input_sep, ","), names=input_header)
+        else:
+            input_header = self.input_header.split(",")
+            dataset = pd.read_csv(self.input_data, sep=sep_dict.get(self.input_sep, ","), names=input_header)
         dataset.to_csv(self.output_data, sep=sep_dict.get(self.output_sep, ","), encoding='utf-8', index=False)
 

@@ -87,6 +87,13 @@ class DAGParser:
                     dep.add((dep_task,task))
 
         self.tasks = []
+        # check all dep_task are in the dag
+
+        for d, t in dep:
+            if d not in all_tasks:
+                logger.error("Can not find task %s " % d)
+                return False
+
         while len(all_tasks) > 0:
             for i in range(len(all_tasks)):
                 runnable = True

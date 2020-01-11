@@ -18,26 +18,56 @@ format of task parameters:
 
 
 class TaskRunner:
-    def __init__(self, task, dag):
+    def __init__(self, task, dag, force):
         self.task = task
         self.dag = dag
         self.task_dir = os.path.join(mlconfig.working_dir, self.task['hash'])
         self._cmd_count = 0
+        self.force = force
 
     def execute(self):
         logger.info("=========================================================")
         logger.info("Running Task: %s (%s)" % (self.task['name'], self.task['hash']))
+        if self._check_task_status() == "Completed" and not self.force:
+            logger.info("Task Completed Already")
+            return True
         self._prepare_data_to_working_directory()
         module_name, cls_name = self.task['operator'].rsplit(".", 1)
         operator = getattr(import_module(module_name), cls_name)
         logger.info("\t* Executing the operator : %s with parameter as follow" % self.task['operator'])
         for s in json.dumps(self.task['real_parameters'], indent=4).split("\n"):
             logger.info("\t    " + s)
+        
         op = operator(**self.task['real_parameters'])
-        logger.info("\t* Task finished successfully.")
-        op.execute()
-
+        op.set_param({'cmd_count':self._cmd_count, 'task_dir':self.task_dir})
+        succ = op.execute()
+        if not succ:
+            logger.info("\t* Task failed at execution.")
+            return False
+        self._cmd_count = op._cmd_count
         self._copy_output_to_data()
+
+        logger.info("\t* Task finished successfully.")
+        self._update_task_status("Completed")
+        return True
+
+    def _update_task_status(self, status):
+        status_file = os.path.join(self.task_dir, "status.json")
+        if os.path.exists(status_file):
+            status_date = json.load(open(status_file, "r"))
+        else:
+            status_date = dict()
+        status_date['status'] = status
+        json.dump(status_date, open(status_file, "w"))
+        return True
+
+
+    def _check_task_status(self):
+        status_file = os.path.join(self.task_dir, "status.json")
+        if os.path.exists(status_file):
+            status = json.load(open(status_file, "r"))
+            return status.get("status", "Completed")
+        return "None"
 
     def _prepare_data_to_working_directory(self):
  

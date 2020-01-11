@@ -28,8 +28,11 @@ class StringParam:
     
 class BooleanParam:
     value = None
-    def __init__(self, string_param):
-        self.value = bool(string_param)
+    def __init__(self, bool_param):
+        if bool_param.lower() == "true":
+            self.value = True
+        else:
+            self.value = False
     def __str__(self):
         return str(self.value)
     type = "BooleanParam"
@@ -38,13 +41,21 @@ class BooleanParam:
 class Operator:
     logger = logging.getLogger("BaseOperator")
 
+    def set_param(self, execute_param):
+        self._cmd_count = execute_param['cmd_count']
+        self.task_dir = execute_param['task_dir']
+
     def _run_command(self, cmd):
-        self._cmd_count += 1
+        try:
+            self._cmd_count += 1
+        except:
+            self._cmd_count = 0
+
         self.logger.debug("Running command %d: %s " % (self._cmd_count, cmd))
         try:
             with open(os.path.join(self.task_dir, "stdout_%d.txt" % self._cmd_count), "wb") as out:
                 with open(os.path.join(self.task_dir, "stderr_%d.txt" % self._cmd_count), "wb") as err:
-                    result = subprocess.Popen(cmd, shell=True, stdout=out, stderr=err)
+                    result = subprocess.Popen(cmd, shell=True, stdout=out, stderr=err, cwd=self.task_dir)
                     streamdata = result.communicate()[0]
                     text = result.returncode
             if (text != 0):
