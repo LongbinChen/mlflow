@@ -1,0 +1,16 @@
+task_download_train:
+  operator: operators.kaggle.download_data.KaggleDownloadOperator
+  parameters:
+    competition: text-normalization-challenge-english-language
+    filename: en_train.csv.zip
+    data_file: en_train.csv
+    unzip: true
+
+task_download_test:
+  operator: operators.kaggle.download_data.KaggleDownloadOperator
+  parameters:
+    competition: text-normalization-challenge-english-language
+    filename: en_test.csv.zip
+    data_file: en_test.csv
+    unzip: true
+

@@ -1,0 +1,24 @@
+task_download_train:
+  operator: operators.kaggle.download_data.KaggleDownloadOperator
+  parameters:
+    competition: jigsaw-toxic-comment-classification-challenge
+    filename: train.csv.zip
+    data_file: download_train.csv.zip
+    unzip: True
+
+task_download_test:
+  operator: operators.kaggle.download_data.KaggleDownloadOperator
+  parameters:
+    competition: jigsaw-toxic-comment-classification-challenge
+    filename: test.csv.zip
+    data_file: download_test.csv.zip
+    unzip: True
+
+task_nb_svm:
+  operator: operators.text_classification.nb_svm.NaiveBaysianSVM
+  parameters:
+    train_data: task_download_train::data_file
+    test_data: task_download_test::data_file
+    text_column: comment_text
+    label_column: toxic,severe_toxic,obscene,threat,insult,identity_hate
+
