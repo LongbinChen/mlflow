@@ -77,7 +77,8 @@ class DAGParser:
                     task['input_data_hash'][k] = data_utils.get_md5(v.encode('utf-8'))
                 else:
                     task['input_data_hash'][k] = data_context.get(v)
-            hash_string += ",".join([k + ":" + str(v.__name__) + ":" + task['input_data_hash'][k] for k, v in task['input_data_hash'].items()])
+                print(task['input_data_hash'])
+            hash_string += ",".join([k + ":" + str(v) + ":" + task['input_data_hash'][k] for k, v in task['input_data_hash'].items()])
             hash_string += ",".join([k + ":" + str(v.__name__) + ":" + str(task['parameters'][k]) for k, v in task['param_list']])
             self.logger.debug("hashing task %s" %  task)
             self.logger.debug("hashing string %s" % hash_string)
@@ -99,14 +100,30 @@ class DAGParser:
         dag = self.dag
         dep = set()
         all_tasks = []
+
+        node_id = 1
+        node_id_dict = dict()
+        for task, task_info in dag.items():
+            task_info['inputs'] = dict()
+            task_info['outputs'] = dict()
+            task_info['node_id'] = node_id
+            node_id_dict[task] = node_id
+            node_id += 1
+
         for task, task_info in dag.items():
             task_info['name'] = task
+            task_info['id'] = node_id_dict[task]
             all_tasks.append(task)
-            for _, data_location in task_info.get("parameters", {}).items():
+            for data_param, data_location in task_info.get("parameters", {}).items():
                 data_location = str(data_location)
                 if '::' in data_location:
-                    dep_task, _ = data_location.split("::", 1)
+                    dep_task, dep_task_param = data_location.split("::", 1)
                     dep.add((dep_task,task))
+                    task_info['inputs'][data_param] = {'connections': [{'node': node_id_dict[dep_task], 'output': dep_task_param}]}
+                    if dep_task_param not in dag[dep_task]['outputs']:
+                        dag[dep_task]['outputs'][dep_task_param] = dict()
+                        dag[dep_task]['outputs'][dep_task_param]['connections'] = []
+                    dag[dep_task]['outputs'][dep_task_param]['connections'].append({'node':node_id_dict[task], 'input':data_param})    
 
         self.tasks = []
         # check all dep_task are in the dag
